@@ -1,37 +1,38 @@
-import easyocr
 import cv2
-import numpy as np
+import os
+# เรียกใช้จากโฟลเดอร์ modules
+from modules.image_processor import MangaCleaner
+from modules.save_to_json import save_to_json
 
-reader = easyocr.Reader(['ch_sim'])
-img = cv2.imread('image.jpg')
-mask = np.zeros(img.shape[:2], dtype=np.uint8)
+def main():
+    # 1. ตั้งค่าที่อยู่ไฟล์ให้เป็นระบบ
+    input_dir = 'image/input'
+    output_dir = 'image/output'
+    os.makedirs(output_dir, exist_ok=True) # สร้างโฟลเดอร์ output ถ้ายังไม่มี
 
-# 1. อ่านข้อความ
-results = reader.readtext(img)
+    filename = 'image.jpg' # ชื่อรูปที่คุณมี
+    input_file = os.path.join(input_dir, filename)
+    output_img = os.path.join(output_dir, f'cleaned_{filename}')
+    output_json = os.path.join(output_dir, 'extracted_text.json')
 
-for (bbox, text, prob) in results:
-    # แปลงพิกัดเป็น Numpy Array
-    pts = np.array(bbox, dtype=np.int32)
-    
-    # 2. คำนวณความสว่าง "เฉพาะจุด" ของตัวอักษรนั้นๆ
-    rect = cv2.boundingRect(pts)
-    x, y, w, h = rect
-    roi = img[y:y+h, x:x+w]
-    
-    if roi.size > 0:
-        avg_brightness = np.mean(roi)
-        
-        # ถ้าความสว่างเฉลี่ย > 180 (ครอบคลุมถึงสีเทาอ่อนใน Bubble) ให้ลบเลย
-        if avg_brightness > 180:
-            print(f"ทำความสะอาด: {text}")
-            # ขยาย Mask ออกไป 2 พิกเซลแทนการหด (เพื่อให้ลบตัวอักษรได้หมดจด)
-            cv2.fillPoly(mask, [pts], 255)
+    # 2. เรียกใช้คลาสจากไฟล์ใน modules
+    cleaner = MangaCleaner()
 
-# 3. ขยายขอบ Mask เล็กน้อยเพื่อให้เก็บขอบตัวอักษรที่ฟุ้งๆ
-kernel = np.ones((3,3), np.uint8)
-mask = cv2.dilate(mask, kernel, iterations=1)
+    # 3. อ่านรูป
+    img = cv2.imread(input_file)
+    if img is None:
+        print(f"ไม่พบไฟล์ภาพที่: {input_file}")
+        return
 
-# 4. ลบด้วย Inpaint (เพิ่มรัศมีการลบเป็น 5 เพื่อความเนียน)
-dst = cv2.inpaint(img, mask, 5, cv2.INPAINT_TELEA)
+    # 4. ประมวลผล
+    print("กำลังสแกนและลบข้อความ...")
+    results = cleaner.detect_text(img)
+    final_img, text_data = cleaner.process_image(img, results)
 
-cv2.imwrite('cleaned_v4.jpg', dst)
+    # 5. บันทึกผล
+    cv2.imwrite(output_img, final_img)
+    save_to_json(text_data, output_json)
+    print(f"เสร็จแล้ว! ผลลัพธ์อยู่ที่โฟลเดอร์ {output_dir}")
+
+if __name__ == "__main__":
+    main()
