@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 reader = easyocr.Reader(['ch_sim'])
-img = cv2.imread('4 ตอนที่ 3 英雄救美.jpg')
+img = cv2.imread('image.jpg')
 mask = np.zeros(img.shape[:2], dtype=np.uint8)
 
 # 1. อ่านข้อความ

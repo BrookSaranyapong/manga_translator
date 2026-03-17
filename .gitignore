@@ -1,0 +1,18 @@
+# Python bytecode (ไฟล์ขยะที่คอมพิวเตอร์สร้างตอนรัน)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment (ห้ามเอาขึ้นเด็ดขาดเพราะมันหนักและใช้ข้ามเครื่องไม่ได้)
+.venv/
+venv/
+ENV/
+
+# ผลลัพธ์จากการรัน (รูปที่เรา Clean เสร็จแล้ว ไม่ควรเอาขึ้น Git)
+cleaned_*.jpg
+fixed_*.jpg
+*.log
+
+# ไฟล์ตั้งค่าของ Editor
+.vscode/
+.idea/
