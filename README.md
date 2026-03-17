@@ -30,16 +30,24 @@ clean/
 
 # สร้าง venv
 
+```text
 python -m venv .venv
+```
 
 # เปิดการใช้งาน venv (Windows)
 
+```text
 .venv\Scripts\activate
+```
 
 # ติดตั้ง Library
 
+```text
 pip install -r requirements.txt
+```
 
 # การใช้งาน
 
+```text
 python main.py
+```
