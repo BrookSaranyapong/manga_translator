@@ -10,6 +10,7 @@ ENV/
 
 # ผลลัพธ์จากการรัน (รูปที่เรา Clean เสร็จแล้ว ไม่ควรเอาขึ้น Git)
 cleaned_*.jpg
+DEBUG_*.jpg
 fixed_*.jpg
 *.log
 
