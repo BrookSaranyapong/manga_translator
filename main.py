@@ -23,7 +23,7 @@ def main():
     output_dir = 'image/output'
     os.makedirs(output_dir, exist_ok=True)
 
-    filename = '4 ตอนที่ 4 地狱妖花.jpg' 
+    filename = 'image.jpg' 
     input_file = os.path.join(input_dir, filename)
     
     output_img = os.path.join(output_dir, f'cleaned_{filename}')

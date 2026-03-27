@@ -36,7 +36,7 @@ class YoloBubbleDetector:
                 if class_id != 0:
                     continue
                 
-                # ✨ ตัวกรอง 2: ลบ Detection ที่เหมือน Face
+                # ✨ ตัวกรอง 2: ลบ Detection ที่เหมือน Face อย่างชัดเจน
                 if self._is_face_detection(w, h):
                     continue
                 
@@ -65,8 +65,7 @@ class YoloBubbleDetector:
     def _is_face_detection(self, w, h):
         """ 
         ✨ ฟังก์ชั่นตรวจสอบว่า Detection นี้เป็น Face หรือไม่
-        Face มักจะใกล้จตุรัส (aspect ratio ≈ 1.0)
-        Bubble มักยาวนาน (aspect ratio > 1.5 หรือ < 0.7)
+        *** Conservative: ไม่กรอง Bubbles ปกติ เฉพาะ Faces ที่ชัดเจน ***
         """
         if h == 0:
             return False
@@ -74,10 +73,12 @@ class YoloBubbleDetector:
         aspect_ratio = w / h
         area = w * h
         
-        # ✨ คุณลักษณะของ Face:
-        # - Aspect ratio ใกล้ 1.0 (เกือบจตุรัส)
-        # - ขนาดปานกลาง (ไม่บ้าน)
-        is_square_like = 0.7 < aspect_ratio < 1.4
-        is_medium_size = 3000 < area < 50000
+        # ✨ คุณลักษณะของตัวละคร Face ที่ควร Filter:
+        # - BOTH เงื่อนไข:
+        #   1. ขนาด VERY LARGE (> 100,000)
+        #   2. ใกล้จตุรัส (0.9 < ratio < 1.1)
+        # Only filter things that REALLY look like faces
+        is_nearly_square = 0.9 < aspect_ratio < 1.1
+        is_very_large = area > 100000
         
-        return is_square_like and is_medium_size
+        return is_nearly_square and is_very_large

@@ -5,6 +5,44 @@ import easyocr
 class MangaCleaner:
     def __init__(self):
         self.reader = easyocr.Reader(['ch_sim'])
+    
+    def _is_valid_text(self, text, confidence):
+        """
+        Filter out corrupted/noise OCR results.
+        Valid text should have meaningful content and reasonable confidence.
+        """
+        if not text or len(text.strip()) == 0:
+            return False
+        
+        stripped = text.strip()
+        
+        # Punctuation and common symbols
+        punctuation = set('!！？?｜|;；:：,，。.·～~-_（）()「」『』【】{}<>《》\'"\'""''…、')
+        
+        # Count actual content chars (non-punctuation, non-space)
+        content_chars = [c for c in stripped if c not in punctuation and not c.isspace()]
+        
+        # No real content = filter
+        if len(content_chars) == 0:
+            return False
+        
+        # Single character - only accept if:
+        # 1. No punctuation mixed in, OR
+        # 2. High confidence
+        if len(content_chars) == 1:
+            punctuation_count = sum(1 for c in stripped if c in punctuation)
+            if punctuation_count > 0 and confidence < 0.8:
+                # Single char mixed with punctuation at low confidence = noise (like "一 !")
+                return False
+            return True
+        
+        # Multiple characters
+        # Repeated characters like "吱吱" are OK (onomatopoeia/sound effects)
+        # Just check if confidence is acceptable
+        if len(stripped) >= 2 and confidence < 0.2:
+            return False
+        
+        return True
 
     def process_image(self, img, detected_bubbles):
         h, w = img.shape[:2]
@@ -38,23 +76,28 @@ class MangaCleaner:
 
             if len(results) > 0:
                 print(f"   ✅ Bubble #{bubble_idx+1}: {len(results)} text(s) detected")
+                
+                # Filter corrupted texts first
+                valid_results = []
+                for (bbox, text, prob) in results:
+                    if self._is_valid_text(text, prob):
+                        valid_results.append((bbox, text, prob))
+                        print(f"       └─ \"{text}\" ({prob:.3f})")
+                    else:
+                        print(f"       └─ [FILTERED] \"{text}\" ({prob:.3f}) - noise/corrupted")
+                
                 combined_text = ""
                 all_points = []
                 overall_conf = 0.0
                 text_count = 0
                 
-                for (bbox, text, prob) in results:
-                    # ✨ Very low threshold - accept all text
-                    if prob < 0.01:
-                        continue
-                    
+                for (bbox, text, prob) in valid_results:
                     combined_text += text
                     for point in bbox:
                         all_points.append([int(point[0] + x1), int(point[1] + y1)])
                     
                     overall_conf += prob
                     text_count += 1
-                    print(f"       └─ \"{text}\" ({prob:.3f})")
 
                 if text_count > 0 and len(all_points) > 0:
                     all_points_arr = np.array(all_points, dtype=np.int32)
@@ -70,7 +113,7 @@ class MangaCleaner:
                         "confidence": float(overall_conf / text_count)
                     })
 
-                    # ✨ ONLY erase text area with MINIMAL padding (not entire bubble)
+                    # Mark text area for inpainting
                     erase_bbox = np.array([
                         [min_x, min_y],
                         [max_x, min_y],
@@ -78,7 +121,6 @@ class MangaCleaner:
                         [min_x, max_y]
                     ], dtype=np.int32)
                     
-                    # Very small padding - just around text
                     padding = 5
                     erase_bbox[0][0] = max(0, erase_bbox[0][0] - padding)
                     erase_bbox[0][1] = max(0, erase_bbox[0][1] - padding)
@@ -95,13 +137,9 @@ class MangaCleaner:
             else:
                 print(f"   ❌ Bubble #{bubble_idx+1}: No text detected by OCR")
 
-        # ✨ LESS aggressive inpainting
+        # Apply inpainting to remove text
         inpaint_mask = cv2.dilate(inpaint_mask, np.ones((5,5), np.uint8), iterations=2)
         inpaint_mask = cv2.morphologyEx(inpaint_mask, cv2.MORPH_CLOSE, np.ones((7,7), np.uint8), iterations=1)
-        
-        # ✨ Single high-quality inpaint (TELEA is better for preserving details)
         cleaned_img = cv2.inpaint(img, inpaint_mask, 3, cv2.INPAINT_TELEA)
-
-        return cleaned_img, cleaned_text_data
 
         return cleaned_img, cleaned_text_data
