@@ -1,7 +1,17 @@
 [
     {
         "bubble_id": 1,
-        "full_text": "真是麻烦,这些畜生一只只都悍不畏死 !",
-        "confidence_avg": 0.8005258800348274
+        "full_text": "莆炎哥哥!",
+        "confidence_avg": 0.019969687628919812
+    },
+    {
+        "bubble_id": 2,
+        "full_text": "这家伙是什么货色,你难道还不知道?",
+        "confidence_avg": 0.6715240259671396
+    },
+    {
+        "bubble_id": 3,
+        "full_text": "哦呵呵!原来是萧炎呵:",
+        "confidence_avg": 0.4579161239320348
     }
 ]

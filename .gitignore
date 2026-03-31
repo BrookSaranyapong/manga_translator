@@ -14,6 +14,9 @@ DEBUG_*.jpg
 fixed_*.jpg
 *.log
 
+final_*.jpg
+translated_text.json
+
 # ไฟล์ตั้งค่าของ Editor
 .vscode/
 .idea/
