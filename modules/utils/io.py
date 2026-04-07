@@ -1,5 +1,19 @@
+import cv2
+import os
 import json
 import numpy as np
+
+
+def cv2_imread_unicode(path):
+    img = cv2.imdecode(np.fromfile(path, dtype=np.uint8), cv2.IMREAD_COLOR)
+    return img
+
+
+def cv2_imwrite_unicode(path, img):
+    extension = os.path.splitext(path)[1]
+    _, res = cv2.imencode(extension, img)
+    res.tofile(path)
+
 
 def merge_bubbles(json_data):
     """ รวมข้อความที่อยู่ bubble เดียวกันเข้าด้วยกัน """
@@ -17,14 +31,15 @@ def merge_bubbles(json_data):
             merged_results[bid]["full_text"] += " " + item["text"]
             merged_results[bid]["confidence_avg"] += item["confidence"]
             merged_results[bid]["count"] += 1
-            
+
     final_list = []
     for bid, data in merged_results.items():
         data["confidence_avg"] /= data["count"]
         del data["count"]
         final_list.append(data)
-    
+
     return final_list
+
 
 def convert_numpy(obj):
     """Convert numpy types to Python native types"""
@@ -32,23 +47,21 @@ def convert_numpy(obj):
         return {k: convert_numpy(v) for k, v in obj.items()}
     elif isinstance(obj, list):
         return [convert_numpy(item) for item in obj]
-    elif isinstance(obj, (np.integer, np.int32, np.int64)):
-        return int(obj)
-    elif isinstance(obj, (np.floating, np.float32, np.float64)):
-        return float(obj)
+    elif hasattr(obj, "dtype") and hasattr(obj, "item"):
+        return obj.item()
     return obj
 
+
 def save_to_json(data, filename, merge=False):
-    """ 
-    บันทึกข้อมูล JSON 
-    ถ้าตั้ง merge=True จะรวมประโยคให้ก่อนเซฟ 
+    """
+    บันทึกข้อมูล JSON
+    ถ้าตั้ง merge=True จะรวมประโยคให้ก่อนเซฟ
     """
     if merge:
         data = merge_bubbles(data)
-    
-    # Convert numpy types to Python types
+
     data = convert_numpy(data)
-        
+
     with open(filename, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
     print(f"✅ บันทึกข้อมูล JSON เรียบร้อย: {filename}")

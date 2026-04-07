@@ -63,12 +63,13 @@ class MangaCleaner:
                 text_count = 0
 
                 for (bbox, text, prob) in results:
-                    if prob < 0.01:
+                    prob_float = float(prob)
+                    if prob_float < 0.01:
                         continue
                     combined_text += text
                     for point in bbox:
-                        all_points.append([int(point[0] + x1), int(point[1] + y1)])
-                    overall_conf += prob
+                        all_points.append([int(float(point[0]) + x1), int(float(point[1]) + y1)])
+                    overall_conf += prob_float
                     text_count += 1
                     print(f"       └─ \"{text}\" ({prob:.3f})")
 

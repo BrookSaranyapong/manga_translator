@@ -16,9 +16,9 @@ class ThaiTextRenderer:
     def _init_harfbuzz(self):
         with open(self.font_path, 'rb') as f:
             font_data = f.read()
-        self.hb_blob = hb.Blob(font_data)
-        self.hb_face = hb.Face(self.hb_blob)
-        self.hb_font = hb.Font(self.hb_face)
+        self.hb_blob = hb.Blob(font_data)  # type: ignore[reportAttributeAccessIssue]
+        self.hb_face = hb.Face(self.hb_blob)  # type: ignore[reportAttributeAccessIssue]
+        self.hb_font = hb.Font(self.hb_face)  # type: ignore[reportAttributeAccessIssue]
         self.hb_font.scale = (self.font_size * 64, self.font_size * 64)
     
     def _init_freetype(self):
@@ -26,11 +26,11 @@ class ThaiTextRenderer:
         self.ft_face.set_char_size(self.font_size * 64)
     
     def shape_text(self, text):
-        buf = hb.Buffer()
+        buf = hb.Buffer()  # type: ignore[reportAttributeAccessIssue]
         buf.add_str(text)
         buf.guess_segment_properties()
         features = {"kern": True, "liga": True, "mark": True, "mkmk": True}
-        hb.shape(self.hb_font, buf, features)
+        hb.shape(self.hb_font, buf, features)  # type: ignore[reportAttributeAccessIssue]
         return buf.glyph_infos, buf.glyph_positions
     
     def render_text_to_image(self, text, text_color=(0, 0, 0),
@@ -61,7 +61,7 @@ class ThaiTextRenderer:
         
         for info, pos in zip(glyph_infos, glyph_positions):
             glyph_id = info.codepoint
-            self.ft_face.load_glyph(glyph_id, freetype.FT_LOAD_RENDER)
+            self.ft_face.load_glyph(glyph_id, freetype.FT_LOAD_RENDER)  # type: ignore[reportAttributeAccessIssue]
             bitmap = self.ft_face.glyph.bitmap
             
             if bitmap.width > 0 and bitmap.rows > 0:

@@ -20,3 +20,4 @@ translated_text.json
 # ไฟล์ตั้งค่าของ Editor
 .vscode/
 .idea/
+./backup

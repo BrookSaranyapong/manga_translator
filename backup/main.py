@@ -2,9 +2,9 @@ import cv2
 import os
 
 # นำเข้าคลาส AI ทั้ง 2 ตัวที่เราแยกหน้าที่กันไว้
-from modules.yolo_detect_bubbles import YoloBubbleDetector
-from modules.image_processor import MangaCleaner
-from modules.save_to_json import save_to_json
+from modules.detection.yolo_detect_bubbles import YoloBubbleDetector
+from modules.ocr.image_processor import MangaCleaner
+from modules.utils.io import save_to_json
 
 def main():
     # 1. ตั้งค่าที่อยู่ไฟล์ให้เป็นระบบ
